@@ -1,0 +1,5 @@
+com/maps/resources/PoiResource.class
+com/maps/MapsTestApplication.class
+com/maps/core/Poi.class
+com/maps/db/PoiDAO.class
+com/maps/MapsTestConfiguration.class
