@@ -1,0 +1,74 @@
+
+services:
+  db:
+    image: postgis/postgis:15-3.3-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: maps_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./infrastructure/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - gis_net
+
+  tiles-init:
+    build:
+      context: ./infrastructure/tiles-init
+    volumes:
+      - ./infrastructure/tileserver/data:/data
+    networks:
+      - gis_net
+
+  tileserver:
+    image: maptiler/tileserver-gl:latest
+    command: -c /data/config.json
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./infrastructure/tileserver/data:/data
+    depends_on:
+      tiles-init:
+        condition: service_completed_successfully
+    networks:
+      - gis_net
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=user
+      - DB_PASSWORD=password
+      - DB_NAME=maps_db
+    depends_on:
+      - db
+    networks:
+      - gis_net
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - VITE_TILESERVER_URL=http://localhost:8080
+    depends_on:
+      - backend
+      - tileserver
+    networks:
+      - gis_net
+
+networks:
+  gis_net:
+    driver: bridge
+
+volumes:
+  db_data:
