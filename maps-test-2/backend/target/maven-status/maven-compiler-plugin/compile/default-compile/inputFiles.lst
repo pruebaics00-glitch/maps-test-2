@@ -1,0 +1,5 @@
+/app/maps-test-2/backend/src/main/java/com/maps/db/PoiDAO.java
+/app/maps-test-2/backend/src/main/java/com/maps/MapsTestApplication.java
+/app/maps-test-2/backend/src/main/java/com/maps/resources/PoiResource.java
+/app/maps-test-2/backend/src/main/java/com/maps/core/Poi.java
+/app/maps-test-2/backend/src/main/java/com/maps/MapsTestConfiguration.java
