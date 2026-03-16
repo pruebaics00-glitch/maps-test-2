@@ -15,12 +15,22 @@ const MapContainer = ({ theme }: MapContainerProps) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [pois, setPois] = useState<any>(null);
 
+  // Keep track of the latest pois data without triggering map style reloads
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const poisRef = useRef<any>(null);
+
   useEffect(() => {
     fetch(`${API_URL}/api/pois`)
       .then(res => res.json())
-      .then(data => setPois(data))
+      .then(data => {
+        setPois(data);
+      })
       .catch(err => console.error("Error fetching POIs:", err));
   }, []);
+
+  useEffect(() => {
+    poisRef.current = pois;
+  }, [pois]);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -77,8 +87,8 @@ const MapContainer = ({ theme }: MapContainerProps) => {
           }
         });
 
-        if (pois) {
-          (mapRef.current.getSource('pois') as maplibregl.GeoJSONSource).setData(pois);
+        if (poisRef.current) {
+          (mapRef.current.getSource('pois') as maplibregl.GeoJSONSource).setData(poisRef.current);
         }
       });
     } else {
@@ -89,7 +99,7 @@ const MapContainer = ({ theme }: MapContainerProps) => {
 
         mapRef.current.addSource('pois', {
           type: 'geojson',
-          data: pois || { type: "FeatureCollection", features: [] }
+          data: poisRef.current || { type: "FeatureCollection", features: [] }
         });
 
         mapRef.current.addLayer({
@@ -122,7 +132,7 @@ const MapContainer = ({ theme }: MapContainerProps) => {
         });
       });
     }
-  }, [theme, pois]);
+  }, [theme]); // Removed pois from dependency array to prevent unnecessary style reloads
 
   useEffect(() => {
     if (mapRef.current && pois) {
