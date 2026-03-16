@@ -1,0 +1,3 @@
+## 2026-03-16 - React MapLibre Style Reload Bottleneck
+**Learning:** Including data state (like `pois`) in a React `useEffect` dependency array alongside initialization logic (like `map.setStyle`) forces an expensive, full map style reload every time data is fetched or updated. This is a severe performance bottleneck specific to React wrappers for map libraries (MapLibre/Mapbox).
+**Action:** Use a mutable `useRef` to track the latest data state (e.g., `poisRef.current = pois`). Remove the data state from the initialization `useEffect` dependency array, and use the ref inside event listeners (like `map.once('style.load')`) to ensure the latest data is rendered without triggering a full style repaint.
