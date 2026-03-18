@@ -14,6 +14,12 @@ const MapContainer = ({ theme }: MapContainerProps) => {
   const mapRef = useRef<MapLibreMap | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [pois, setPois] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const poisRef = useRef<any>(null);
+
+  useEffect(() => {
+    poisRef.current = pois;
+  }, [pois]);
 
   useEffect(() => {
     fetch(`${API_URL}/api/pois`)
@@ -77,8 +83,8 @@ const MapContainer = ({ theme }: MapContainerProps) => {
           }
         });
 
-        if (pois) {
-          (mapRef.current.getSource('pois') as maplibregl.GeoJSONSource).setData(pois);
+        if (poisRef.current) {
+          (mapRef.current.getSource('pois') as maplibregl.GeoJSONSource).setData(poisRef.current);
         }
       });
     } else {
@@ -89,7 +95,7 @@ const MapContainer = ({ theme }: MapContainerProps) => {
 
         mapRef.current.addSource('pois', {
           type: 'geojson',
-          data: pois || { type: "FeatureCollection", features: [] }
+          data: poisRef.current || { type: "FeatureCollection", features: [] }
         });
 
         mapRef.current.addLayer({
@@ -122,7 +128,7 @@ const MapContainer = ({ theme }: MapContainerProps) => {
         });
       });
     }
-  }, [theme, pois]);
+  }, [theme]);
 
   useEffect(() => {
     if (mapRef.current && pois) {
