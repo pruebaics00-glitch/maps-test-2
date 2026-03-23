@@ -1,0 +1,3 @@
+## 2026-03-23 - PostgreSQL Native JSON Aggregation for Spatial Data
+**Learning:** Fetching spatial geometries via PostGIS ST_AsGeoJSON to Java string mappings and then inserting O(N) objects into lists/maps to be finally serialized back to JSON via Jersey/Jackson involves huge memory allocation and GC overhead for large FeatureCollections.
+**Action:** Offload the generation of the GeoJSON `FeatureCollection` entirely to the database layer by combining `json_build_object`, `json_agg`, and `ST_AsGeoJSON`. Return the pre-computed text directly from the API, bypassing Java's object creation and serialization layers entirely.
