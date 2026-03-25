@@ -3,6 +3,7 @@ package com.maps.resources;
 import com.maps.core.Poi;
 import com.maps.db.PoiDAO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.RawValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -45,7 +46,8 @@ public class PoiResource {
                 properties.put("description", poi.getDescription());
 
                 feature.put("properties", properties);
-                feature.put("geometry", mapper.readTree(poi.getGeojson()));
+                // ⚡ Bolt: Prevent unnecessary parsing of JSON by using RawValue
+                feature.put("geometry", new RawValue(poi.getGeojson()));
 
                 features.add(feature);
             }
