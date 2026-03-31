@@ -28,30 +28,11 @@ public class PoiResource {
     @GET
     public Response getPois() {
         try {
-            List<Poi> pois = poiDAO.findAll();
-
-            Map<String, Object> featureCollection = new HashMap<>();
-            featureCollection.put("type", "FeatureCollection");
-
-            List<Map<String, Object>> features = new ArrayList<>();
-
-            for (Poi poi : pois) {
-                Map<String, Object> feature = new HashMap<>();
-                feature.put("type", "Feature");
-
-                Map<String, Object> properties = new HashMap<>();
-                properties.put("id", poi.getId());
-                properties.put("name", poi.getName());
-                properties.put("description", poi.getDescription());
-
-                feature.put("properties", properties);
-                feature.put("geometry", mapper.readTree(poi.getGeojson()));
-
-                features.add(feature);
-            }
-
-            featureCollection.put("features", features);
-            return Response.ok(featureCollection).build();
+            // ⚡ Bolt: Return pre-aggregated JSON string directly from DB
+            // Why: Prevents N+1 allocations and Jackson serialization overhead
+            // Impact: O(1) Java memory usage regardless of dataset size
+            String geoJsonString = poiDAO.findAllAsGeoJson();
+            return Response.ok(geoJsonString).build();
         } catch (Exception e) {
             return Response.serverError().entity(e.getMessage()).build();
         }
