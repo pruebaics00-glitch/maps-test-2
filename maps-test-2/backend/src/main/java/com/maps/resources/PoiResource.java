@@ -28,30 +28,11 @@ public class PoiResource {
     @GET
     public Response getPois() {
         try {
-            List<Poi> pois = poiDAO.findAll();
-
-            Map<String, Object> featureCollection = new HashMap<>();
-            featureCollection.put("type", "FeatureCollection");
-
-            List<Map<String, Object>> features = new ArrayList<>();
-
-            for (Poi poi : pois) {
-                Map<String, Object> feature = new HashMap<>();
-                feature.put("type", "Feature");
-
-                Map<String, Object> properties = new HashMap<>();
-                properties.put("id", poi.getId());
-                properties.put("name", poi.getName());
-                properties.put("description", poi.getDescription());
-
-                feature.put("properties", properties);
-                feature.put("geometry", mapper.readTree(poi.getGeojson()));
-
-                features.add(feature);
-            }
-
-            featureCollection.put("features", features);
-            return Response.ok(featureCollection).build();
+            // ⚡ Bolt: Offloaded spatial JSON generation to PostGIS native JSON aggregation.
+            // This prevents Java-side memory overhead and costly Jackson serialization.
+            // The JSON is built efficiently inside the database and returned as a raw String.
+            String featureCollectionJson = poiDAO.findAllAsGeoJson();
+            return Response.ok(featureCollectionJson).build();
         } catch (Exception e) {
             return Response.serverError().entity(e.getMessage()).build();
         }
