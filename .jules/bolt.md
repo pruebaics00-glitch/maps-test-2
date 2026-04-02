@@ -1,3 +1,6 @@
 ## 2024-03-18 - [MapLibre Redundant Render on Data Fetch]
 **Learning:** [React `useEffect` combining theme change (which requires a MapLibre `setStyle`) and data fetch triggers a full style recalculation on every data load. MapLibre `setStyle` clears layers.]
 **Action:** [Decouple the theme configuration from data fetching by using a Ref for dynamic data within the configuration block and handling data synchronization in its own decoupled `useEffect`.]
+## 2024-04-02 - [Backend Spatial Data Serialization]
+**Learning:** [Fetching PostGIS rows to Java objects and serializing them via Jackson is highly inefficient for GeoJSON responses and creates memory overhead. PostGIS is capable of returning the full structure natively.]
+**Action:** [Use `json_build_object` and `json_agg` natively in PostGIS queries directly for GeoJSON generation instead of utilizing the `ObjectMapper` in Java.]
