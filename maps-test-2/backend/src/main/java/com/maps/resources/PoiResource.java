@@ -28,30 +28,14 @@ public class PoiResource {
     @GET
     public Response getPois() {
         try {
-            List<Poi> pois = poiDAO.findAll();
+            // ⚡ Bolt Performance Optimization:
+            // What: Using PostGIS native JSON aggregation instead of Java-side Jackson mapping
+            // Why: Avoids large memory overhead of loading rows into Java objects and converting them back to a giant JSON map
+            // Impact: Significantly reduces GC pressure and speeds up response time by shifting work to the DB
+            String geoJsonCollection = poiDAO.getFeatureCollection();
 
-            Map<String, Object> featureCollection = new HashMap<>();
-            featureCollection.put("type", "FeatureCollection");
-
-            List<Map<String, Object>> features = new ArrayList<>();
-
-            for (Poi poi : pois) {
-                Map<String, Object> feature = new HashMap<>();
-                feature.put("type", "Feature");
-
-                Map<String, Object> properties = new HashMap<>();
-                properties.put("id", poi.getId());
-                properties.put("name", poi.getName());
-                properties.put("description", poi.getDescription());
-
-                feature.put("properties", properties);
-                feature.put("geometry", mapper.readTree(poi.getGeojson()));
-
-                features.add(feature);
-            }
-
-            featureCollection.put("features", features);
-            return Response.ok(featureCollection).build();
+            // Dropwizard/JAX-RS returns raw JSON string directly without adding extraneous quotes
+            return Response.ok(geoJsonCollection).build();
         } catch (Exception e) {
             return Response.serverError().entity(e.getMessage()).build();
         }
