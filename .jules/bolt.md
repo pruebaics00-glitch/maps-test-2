@@ -1,3 +1,6 @@
 ## 2024-03-18 - [MapLibre Redundant Render on Data Fetch]
 **Learning:** [React `useEffect` combining theme change (which requires a MapLibre `setStyle`) and data fetch triggers a full style recalculation on every data load. MapLibre `setStyle` clears layers.]
 **Action:** [Decouple the theme configuration from data fetching by using a Ref for dynamic data within the configuration block and handling data synchronization in its own decoupled `useEffect`.]
+## 2024-03-18 - [PostGIS Native JSON Aggregation]
+**Learning:** [Using PostGIS native JSON functions like `json_build_object` and `json_agg` allows the database to construct complex GeoJSON feature collections, avoiding massive memory overhead and serialization costs in the Java backend.]
+**Action:** [Prefer returning aggregated JSON strings directly from the database for spatial endpoints to reduce heap allocation and GC pressure, remembering to use `COALESCE(..., '[]'::json)` for empty datasets and cast `ST_AsGeoJSON` to `::json`.]
