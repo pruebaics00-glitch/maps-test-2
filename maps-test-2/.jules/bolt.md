@@ -1,0 +1,3 @@
+## 2024-04-19 - PostGIS Native GeoJSON Aggregation
+**Learning:** Building large GeoJSON FeatureCollections in Java using loops, HashMaps, and `ObjectMapper.readTree` creates severe O(n) memory overhead and CPU cost due to Jackson parsing/serialization. Additionally, Dropwizard double-encodes raw JSON strings if returned directly.
+**Action:** Offload JSON construction completely to PostGIS using `json_build_object` and `json_agg` (ensuring empty sets return `[]` via `COALESCE`, and casting `ST_AsGeoJSON(geom)::json`). Return the raw JSON string as `byte[]` (`.getBytes(StandardCharsets.UTF_8)`) to bypass Jackson serialization overhead entirely.
