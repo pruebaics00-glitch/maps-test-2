@@ -1,3 +1,6 @@
 ## 2024-03-18 - [MapLibre Redundant Render on Data Fetch]
 **Learning:** [React `useEffect` combining theme change (which requires a MapLibre `setStyle`) and data fetch triggers a full style recalculation on every data load. MapLibre `setStyle` clears layers.]
 **Action:** [Decouple the theme configuration from data fetching by using a Ref for dynamic data within the configuration block and handling data synchronization in its own decoupled `useEffect`.]
+## 2024-04-29 - [PostGIS JSON Aggregation and Dropwizard Double-Encoding]
+**Learning:** [When returning raw JSON strings from PostGIS aggregation in a Dropwizard application annotated with `@Produces(MediaType.APPLICATION_JSON)`, Jackson double-encodes the string. Additionally, nesting PostGIS `ST_AsGeoJSON` inside `json_build_object` or `json_agg` requires explicit casting (`::json`) to prevent serialization as an escaped string.]
+**Action:** [Use `Response.ok(jsonString.getBytes(StandardCharsets.UTF_8)).build()` to return raw JSON byte arrays, bypassing Jackson serialization. Always cast `ST_AsGeoJSON(geom)::json` when aggregating spatially to avoid double-escaping inside Postgres.]
