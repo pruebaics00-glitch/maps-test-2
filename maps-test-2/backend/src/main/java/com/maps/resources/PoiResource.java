@@ -8,18 +8,13 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
 
 @Path("/api/pois")
 @Produces(MediaType.APPLICATION_JSON)
 public class PoiResource {
 
     private final PoiDAO poiDAO;
-    private final ObjectMapper mapper = new ObjectMapper();
 
     public PoiResource(PoiDAO poiDAO) {
         this.poiDAO = poiDAO;
@@ -28,30 +23,14 @@ public class PoiResource {
     @GET
     public Response getPois() {
         try {
-            List<Poi> pois = poiDAO.findAll();
-
-            Map<String, Object> featureCollection = new HashMap<>();
-            featureCollection.put("type", "FeatureCollection");
-
-            List<Map<String, Object>> features = new ArrayList<>();
-
-            for (Poi poi : pois) {
-                Map<String, Object> feature = new HashMap<>();
-                feature.put("type", "Feature");
-
-                Map<String, Object> properties = new HashMap<>();
-                properties.put("id", poi.getId());
-                properties.put("name", poi.getName());
-                properties.put("description", poi.getDescription());
-
-                feature.put("properties", properties);
-                feature.put("geometry", mapper.readTree(poi.getGeojson()));
-
-                features.add(feature);
-            }
-
-            featureCollection.put("features", features);
-            return Response.ok(featureCollection).build();
+            // Bolt: [performance improvement] Offload GeoJSON generation to PostGIS
+            // Instead of loading all records into Java memory, building maps/lists,
+            // and relying on Jackson serialization, we use PostGIS's json_build_object
+            // and json_agg directly in the SQL query.
+            // This reduces memory pressure and serialization overhead, returning the
+            // result as a byte array to bypass Jackson completely.
+            String geoJsonString = poiDAO.getPoisAsGeoJson();
+            return Response.ok(geoJsonString.getBytes(StandardCharsets.UTF_8)).build();
         } catch (Exception e) {
             return Response.serverError().entity(e.getMessage()).build();
         }
