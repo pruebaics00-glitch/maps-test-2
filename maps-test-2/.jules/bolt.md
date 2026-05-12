@@ -1,0 +1,3 @@
+## 2024-05-12 - PostgreSQL JSON Aggregation and Jackson Byte Array Bypass
+**Learning:** Returning a raw JSON string from a database query in Dropwizard/JAX-RS via `Response.ok(string).build()` causes Jackson to double-encode it. Constructing complex GeoJSON FeatureCollections in Java adds significant memory overhead from map and list instantiations.
+**Action:** Use PostGIS native `json_build_object`, `json_agg`, and `ST_AsGeoJSON(geom)::json` to generate JSON entirely in the database. When returning the resulting raw JSON string from the controller, use `Response.ok(geoJsonString.getBytes(StandardCharsets.UTF_8)).build()` to explicitly bypass Jackson serialization.
