@@ -1,0 +1,3 @@
+## 2024-05-17 - Spatial Data Serialization Overhead
+**Learning:** Returning large spatial datasets by iterating through database objects in Java and serializing with Jackson creates significant memory overhead and duplicate JSON structure. Native PostGIS aggregation using `json_build_object` and `json_agg` bypasses this entirely, returning a pre-formatted JSON string.
+**Action:** Use PostGIS native JSON functions directly in JDBI queries to aggregate GeoJSON structures at the database layer. When doing so, return the result as a byte array (e.g. `.getBytes(StandardCharsets.UTF_8)`) to prevent Jackson from double-encoding the pre-formatted JSON string. Also, ensure the inner `json_agg` is wrapped with `COALESCE(..., '[]'::json)` to handle empty tables correctly.
