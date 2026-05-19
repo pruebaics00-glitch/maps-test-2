@@ -1,3 +1,6 @@
 ## 2024-03-18 - [MapLibre Redundant Render on Data Fetch]
 **Learning:** [React `useEffect` combining theme change (which requires a MapLibre `setStyle`) and data fetch triggers a full style recalculation on every data load. MapLibre `setStyle` clears layers.]
 **Action:** [Decouple the theme configuration from data fetching by using a Ref for dynamic data within the configuration block and handling data synchronization in its own decoupled `useEffect`.]
+## 2024-03-18 - [PostGIS Native JSON Aggregation and Jackson Double-Encoding]
+**Learning:** [When dealing with PostGIS geometries, querying them as Java objects and serializing them to GeoJSON with Jackson is highly inefficient. PostGIS native JSON aggregation (`json_build_object`, `json_agg`) combined with `ST_AsGeoJSON(geom)::json` can build the FeatureCollection directly in SQL. When returning a raw JSON string from a JAX-RS endpoint annotated with `@Produces(MediaType.APPLICATION_JSON)`, returning it as a `String` causes Jackson to double-encode it. It must be returned as a byte array (`string.getBytes(StandardCharsets.UTF_8)`).]
+**Action:** [Use PostGIS JSON aggregation for spatial APIs and bypass Jackson by returning byte arrays for raw JSON strings.]

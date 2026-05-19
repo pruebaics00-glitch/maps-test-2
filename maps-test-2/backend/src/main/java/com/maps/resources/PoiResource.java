@@ -9,17 +9,14 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
 
 @Path("/api/pois")
 @Produces(MediaType.APPLICATION_JSON)
 public class PoiResource {
 
     private final PoiDAO poiDAO;
-    private final ObjectMapper mapper = new ObjectMapper();
+    // Removed ObjectMapper since we are bypassing Jackson serialization
 
     public PoiResource(PoiDAO poiDAO) {
         this.poiDAO = poiDAO;
@@ -28,30 +25,16 @@ public class PoiResource {
     @GET
     public Response getPois() {
         try {
-            List<Poi> pois = poiDAO.findAll();
+            // ⚡ Bolt: Offload GeoJSON serialization to PostGIS
+            // What: Using PostGIS native JSON aggregation to build FeatureCollection directly in SQL
+            // Why: Avoids Java object instantiation overhead and Jackson serialization overhead
+            // Impact: Reduces memory usage and response time for large datasets
+            // Measurement: API response time and application memory profiling
 
-            Map<String, Object> featureCollection = new HashMap<>();
-            featureCollection.put("type", "FeatureCollection");
+            String geoJsonString = poiDAO.getPoisAsGeoJson();
 
-            List<Map<String, Object>> features = new ArrayList<>();
-
-            for (Poi poi : pois) {
-                Map<String, Object> feature = new HashMap<>();
-                feature.put("type", "Feature");
-
-                Map<String, Object> properties = new HashMap<>();
-                properties.put("id", poi.getId());
-                properties.put("name", poi.getName());
-                properties.put("description", poi.getDescription());
-
-                feature.put("properties", properties);
-                feature.put("geometry", mapper.readTree(poi.getGeojson()));
-
-                features.add(feature);
-            }
-
-            featureCollection.put("features", features);
-            return Response.ok(featureCollection).build();
+            // Return as byte array to bypass Jackson double-encoding a raw string
+            return Response.ok(geoJsonString.getBytes(StandardCharsets.UTF_8)).build();
         } catch (Exception e) {
             return Response.serverError().entity(e.getMessage()).build();
         }
