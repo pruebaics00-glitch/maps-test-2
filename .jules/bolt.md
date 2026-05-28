@@ -1,3 +1,7 @@
 ## 2024-03-18 - [MapLibre Redundant Render on Data Fetch]
 **Learning:** [React `useEffect` combining theme change (which requires a MapLibre `setStyle`) and data fetch triggers a full style recalculation on every data load. MapLibre `setStyle` clears layers.]
 **Action:** [Decouple the theme configuration from data fetching by using a Ref for dynamic data within the configuration block and handling data synchronization in its own decoupled `useEffect`.]
+
+## 2026-05-28 - [PostGIS Native JSON Aggregation & Jackson Serialization]
+**Learning:** [PostGIS native JSON aggregation (`json_build_object`, `json_agg`, `ST_AsGeoJSON`) can push spatial processing and large payload creation entirely to the database, preventing massive Java-side memory overhead and saving time building large objects. However, returning raw JSON string arrays directly from a Dropwizard controller (with `@Produces(MediaType.APPLICATION_JSON)`) will cause Jackson to double-encode the output. `ST_AsGeoJSON(geom)::json` and `COALESCE(json_agg(...), '[]'::json)` are crucial inside queries to handle proper types. To bypass Jackson string serialization, convert the raw JSON string to a UTF-8 byte array (`Response.ok(jsonString.getBytes(StandardCharsets.UTF_8)).build()`).]
+**Action:** [Use native PostGIS aggregation functions to build GeoJSON in SQL queries for performance. Ensure `::json` cast is used. Return the database-built JSON string as a `byte[]` in JAX-RS controllers to bypass Jackson double-encoding.]
