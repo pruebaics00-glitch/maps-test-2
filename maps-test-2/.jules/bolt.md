@@ -1,0 +1,4 @@
+
+## 2024-06-01 - Offloading GeoJSON aggregation to PostGIS in JAX-RS
+**Learning:** Returning a list of spatial items mapped directly by Jackson creates significant Java heap overhead for parsing GeoJSON back to objects, only to be serialized immediately again. Also, JAX-RS/Jackson will double-encode string values returned directly if `@Produces(MediaType.APPLICATION_JSON)` is present, unless returned as raw bytes.
+**Action:** Use PostGIS native `json_build_object` and `json_agg` functions to generate the complete FeatureCollection payload directly in the database. When handling this raw JSON string in JAX-RS, always return it as `Response.ok(jsonString.getBytes(StandardCharsets.UTF_8)).build()` to skip Jackson entirely. Ensure you use COALESCE with `::json` cast on the `json_agg` call (e.g. `COALESCE(json_agg(...), '[]'::json)`) to avoid producing null features.
