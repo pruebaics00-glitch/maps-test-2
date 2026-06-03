@@ -1,0 +1,3 @@
+## 2024-03-18 - [PostGIS JSON Aggregation Optimization]
+**Learning:** [In Dropwizard/JDBI3, mapping large spatial queries into Java objects via Jackson and then serializing back into GeoJSON is highly inefficient due to O(N) object creation, double-encoding issues, and memory overhead.]
+**Action:** [Use PostGIS native JSON aggregation (`json_build_object`, `json_agg`, and `ST_AsGeoJSON`) directly in JDBI queries to return a pre-formatted JSON string. Always apply `COALESCE(json_agg(...), '[]'::json)` internally, and return the raw string as a byte array (`StandardCharsets.UTF_8`) to bypass Jackson double serialization.]
