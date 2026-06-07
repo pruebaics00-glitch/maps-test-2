@@ -1,0 +1,3 @@
+## 2024-06-07 - Offload PostGIS GeoJSON Aggregation
+**Learning:** PostGIS JSON aggregation (`json_build_object`, `json_agg`) combined with `ST_AsGeoJSON` allows constructing entire GeoJSON FeatureCollections in the database. This significantly reduces Java-side memory overhead (instantiating DTOs and maps) and eliminates Jackson serialization/deserialization CPU overhead (especially parsing row-level JSON strings).
+**Action:** When working with spatial data and PostGIS, prefer native JSON aggregation directly in JDBI SQL queries. Return the resulting JSON string as a byte array (`Response.ok(jsonString.getBytes(StandardCharsets.UTF_8)).build()`) to prevent Jackson from double-encoding it.
