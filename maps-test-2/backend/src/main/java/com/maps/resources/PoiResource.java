@@ -1,17 +1,14 @@
 package com.maps.resources;
 
-import com.maps.core.Poi;
 import com.maps.db.PoiDAO;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Map;
 
 @Path("/api/pois")
@@ -19,7 +16,6 @@ import java.util.Map;
 public class PoiResource {
 
     private final PoiDAO poiDAO;
-    private final ObjectMapper mapper = new ObjectMapper();
 
     public PoiResource(PoiDAO poiDAO) {
         this.poiDAO = poiDAO;
@@ -28,32 +24,14 @@ public class PoiResource {
     @GET
     public Response getPois() {
         try {
-            List<Poi> pois = poiDAO.findAll();
+            // ⚡ Bolt: Fetch pre-computed GeoJSON directly from database
+            String geoJson = poiDAO.findAllAsGeoJson();
 
-            Map<String, Object> featureCollection = new HashMap<>();
-            featureCollection.put("type", "FeatureCollection");
-
-            List<Map<String, Object>> features = new ArrayList<>();
-
-            for (Poi poi : pois) {
-                Map<String, Object> feature = new HashMap<>();
-                feature.put("type", "Feature");
-
-                Map<String, Object> properties = new HashMap<>();
-                properties.put("id", poi.getId());
-                properties.put("name", poi.getName());
-                properties.put("description", poi.getDescription());
-
-                feature.put("properties", properties);
-                feature.put("geometry", mapper.readTree(poi.getGeojson()));
-
-                features.add(feature);
-            }
-
-            featureCollection.put("features", features);
-            return Response.ok(featureCollection).build();
+            // ⚡ Bolt: Return raw string as bytes to bypass Jackson double-encoding
+            return Response.ok(geoJson.getBytes(StandardCharsets.UTF_8)).build();
         } catch (Exception e) {
-            return Response.serverError().entity(e.getMessage()).build();
+            Map<String, String> error = Collections.singletonMap("error", e.getMessage());
+            return Response.serverError().entity(error).build();
         }
     }
 }
