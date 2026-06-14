@@ -1,25 +1,18 @@
 package com.maps.resources;
 
-import com.maps.core.Poi;
 import com.maps.db.PoiDAO;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
 
 @Path("/api/pois")
 @Produces(MediaType.APPLICATION_JSON)
 public class PoiResource {
 
     private final PoiDAO poiDAO;
-    private final ObjectMapper mapper = new ObjectMapper();
 
     public PoiResource(PoiDAO poiDAO) {
         this.poiDAO = poiDAO;
@@ -28,30 +21,13 @@ public class PoiResource {
     @GET
     public Response getPois() {
         try {
-            List<Poi> pois = poiDAO.findAll();
-
-            Map<String, Object> featureCollection = new HashMap<>();
-            featureCollection.put("type", "FeatureCollection");
-
-            List<Map<String, Object>> features = new ArrayList<>();
-
-            for (Poi poi : pois) {
-                Map<String, Object> feature = new HashMap<>();
-                feature.put("type", "Feature");
-
-                Map<String, Object> properties = new HashMap<>();
-                properties.put("id", poi.getId());
-                properties.put("name", poi.getName());
-                properties.put("description", poi.getDescription());
-
-                feature.put("properties", properties);
-                feature.put("geometry", mapper.readTree(poi.getGeojson()));
-
-                features.add(feature);
-            }
-
-            featureCollection.put("features", features);
-            return Response.ok(featureCollection).build();
+            // ⚡ Bolt: Offload GeoJSON aggregation to PostGIS
+            // What: Replaced Java-side object mapping and Jackson serialization with native PostGIS JSON aggregation
+            // Why: Avoids loading all rows into Java memory, prevents O(n) HashMap creations, and eliminates Jackson overhead
+            // Impact: Significantly reduces memory usage and speeds up response times
+            // Measurement: Compare API response times and backend heap memory usage before and after
+            String geoJson = poiDAO.getGeoJson();
+            return Response.ok(geoJson.getBytes(StandardCharsets.UTF_8)).build();
         } catch (Exception e) {
             return Response.serverError().entity(e.getMessage()).build();
         }
