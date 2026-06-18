@@ -1,3 +1,7 @@
 ## 2024-03-18 - [MapLibre Redundant Render on Data Fetch]
 **Learning:** [React `useEffect` combining theme change (which requires a MapLibre `setStyle`) and data fetch triggers a full style recalculation on every data load. MapLibre `setStyle` clears layers.]
 **Action:** [Decouple the theme configuration from data fetching by using a Ref for dynamic data within the configuration block and handling data synchronization in its own decoupled `useEffect`.]
+
+## 2024-03-18 - [PostGIS Native JSON Aggregation for Backend Performance]
+**Learning:** [Returning spatial data from PostgreSQL/PostGIS to a Java/Dropwizard backend typically involves fetching rows into memory, converting PostGIS geometries into Java objects, and then using Jackson to serialize the collection back into a large JSON payload. This is a significant bottleneck causing slow serialization and excessive JVM memory overhead for large GeoJSON responses.]
+**Action:** [Offload JSON construction directly to PostGIS using native aggregation (`json_build_object`, `json_agg`, `ST_AsGeoJSON`). Cast the PostGIS `ST_AsGeoJSON` inside `json_build_object` explicitly to JSON (`ST_AsGeoJSON(geom)::json`) to prevent serialization as an escaped string. Apply `COALESCE` with `::json` cast on `json_agg` (e.g., `COALESCE(json_agg(...), '[]'::json)`) before wrapping it in `json_build_object` to handle empty tables correctly. Return the resulting text string from JDBI and bypass Jackson completely by returning it as a byte array (`Response.ok(jsonString.getBytes(StandardCharsets.UTF_8)).build()`).]
