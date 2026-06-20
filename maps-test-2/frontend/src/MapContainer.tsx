@@ -84,7 +84,10 @@ const MapContainer = ({ theme }: MapContainerProps) => {
         });
 
         if (poisRef.current) {
-          (mapRef.current.getSource('pois') as maplibregl.GeoJSONSource).setData(poisRef.current);
+          const source = mapRef.current.getSource('pois') as maplibregl.GeoJSONSource;
+          if (source) {
+              source.setData(poisRef.current);
+          }
         }
       });
     } else {
@@ -95,6 +98,9 @@ const MapContainer = ({ theme }: MapContainerProps) => {
 
         mapRef.current.addSource('pois', {
           type: 'geojson',
+          // Optimization: Decoupled theme style reload from active data state by using a Ref for dynamic data.
+          // This prevents unnecessary style recalculations when POIs data is updated,
+          // and ensures the layer restores the currently loaded POIs after a theme style change clears layers.
           data: poisRef.current || { type: "FeatureCollection", features: [] }
         });
 
@@ -139,7 +145,7 @@ const MapContainer = ({ theme }: MapContainerProps) => {
     }
   }, [pois]);
 
-  return <div ref={mapContainerRef} className="map-container" />;
+  return <div ref={mapContainerRef} className="map-container" style={{ width: '100%', height: '100vh' }} />;
 };
 
 export default MapContainer;
