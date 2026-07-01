@@ -1,3 +1,6 @@
 ## 2024-03-18 - [MapLibre Redundant Render on Data Fetch]
 **Learning:** [React `useEffect` combining theme change (which requires a MapLibre `setStyle`) and data fetch triggers a full style recalculation on every data load. MapLibre `setStyle` clears layers.]
 **Action:** [Decouple the theme configuration from data fetching by using a Ref for dynamic data within the configuration block and handling data synchronization in its own decoupled `useEffect`.]
+## 2024-05-18 - [PostGIS JSON Aggregation Offloading]
+**Learning:** [In JAX-RS/Dropwizard, fetching thousands of rows to build a GeoJSON FeatureCollection in Java creates massive memory overhead (O(n) objects) and suffers from Jackson double-encoding if raw JSON strings are returned directly. PostGIS native JSON aggregation (`json_build_object`, `json_agg`, `ST_AsGeoJSON`) can handle this entirely in the database.]
+**Action:** [Use `json_build_object` and `json_agg` with `COALESCE` in JDBI `@SqlQuery` to aggregate the entire FeatureCollection into a single String in PostgreSQL. Return this raw String bypassing Jackson by casting it to bytes: `Response.ok(geoJsonString.getBytes(StandardCharsets.UTF_8)).build()`.]
