@@ -1,3 +1,6 @@
 ## 2024-03-18 - [MapLibre Redundant Render on Data Fetch]
 **Learning:** [React `useEffect` combining theme change (which requires a MapLibre `setStyle`) and data fetch triggers a full style recalculation on every data load. MapLibre `setStyle` clears layers.]
 **Action:** [Decouple the theme configuration from data fetching by using a Ref for dynamic data within the configuration block and handling data synchronization in its own decoupled `useEffect`.]
+## 2024-03-18 - [PostGIS JSON Aggregation over Java Serialization]
+**Learning:** [In Dropwizard applications serving spatial data, using `ST_AsGeoJSON(geom)` in JDBI queries followed by Java loop parsing (O(n)) into HashMaps to build FeatureCollections leads to high memory and GC overhead. Returning raw strings with `Response.ok(string).build()` also double-encodes the JSON.]
+**Action:** [Offload the JSON aggregation fully to PostGIS using nested `json_build_object` and `json_agg` with a COALESCE for empty tables. Explicitly cast the ST_AsGeoJSON result using `::json` to prevent stringification of geometry. Return raw JSON natively using `string.getBytes(StandardCharsets.UTF_8)` to avoid double-encoding.]
